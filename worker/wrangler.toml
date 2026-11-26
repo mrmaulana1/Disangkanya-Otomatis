@@ -1,0 +1,9 @@
+name = "sentinel-ops-worker"
+main = "index.js"
+compatibility_date = "2026-11-26"
+
+[triggers]
+crons = [
+  "*/5 * * * *",
+  "0 0,10 * * *"
+]
