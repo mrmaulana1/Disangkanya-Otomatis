@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sentinel Ops Monitor</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background-color: #0b0e14; color: #e2e8f0; padding: 20px; display: flex; justify-content: center; }
+    .container { width: 100%; max-width: 500px; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #1e293b; padding-bottom: 14px; }
+    h1 { font-size: 1.2rem; font-weight: 700; color: #f8fafc; letter-spacing: 0.5px; }
+    button { background: #2563eb; color: #fff; border: none; padding: 8px 14px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.85rem; }
+    button:active { background: #1d4ed8; }
+    button:disabled { background: #334155; color: #94a3b8; cursor: not-allowed; }
+    .meta { font-size: 0.78rem; color: #64748b; margin-bottom: 16px; }
+    .card { background: #131822; border: 1px solid #1e293b; border-radius: 8px; padding: 14px 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .info h2 { font-size: 0.95rem; font-weight: 600; color: #f1f5f9; margin-bottom: 4px; }
+    .info p { font-size: 0.75rem; color: #64748b; word-break: break-all; }
+    .status-box { text-align: right; min-width: 85px; }
+    .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.72rem; font-weight: 700; }
+    .up { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .down { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .latency { font-size: 0.72rem; color: #94a3b8; margin-top: 5px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>SENTINEL OPS</h1>
+      <button id="refreshBtn" onclick="loadStatus()">Cek Sekarang</button>
+    </div>
+    <div class="meta" id="lastUpdate">Memuat status sistem...</div>
+    <div id="list"></div>
+  </div>
+
+  <script>
+    async function loadStatus() {
+      const btn = document.getElementById("refreshBtn");
+      const list = document.getElementById("list");
+      const lastUpdate = document.getElementById("lastUpdate");
+
+      btn.disabled = true;
+      btn.textContent = "Mengecek...";
+
+      try {
+        const res = await fetch("/api/status");
+        const data = await res.json();
+
+        list.innerHTML = "";
+        data.targets.forEach(item => {
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <div class="info">
+              <h2>${item.name}</h2>
+              <p>${item.url}</p>
+            </div>
+            <div class="status-box">
+              <span class="badge ${item.up ? "up" : "down"}">${item.up ? "ONLINE" : "DOWN (" + item.status + ")"}</span>
+              <div class="latency">${item.latency} ms</div>
+            </div>
+          `;
+          list.appendChild(card);
+        });
+
+        const waktu = new Date(data.timestamp).toLocaleTimeString("id-ID");
+        lastUpdate.textContent = "Terakhir dicek pukul " + waktu + " WIB";
+      } catch (e) {
+        lastUpdate.textContent = "Gagal mengambil data status server.";
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Cek Sekarang";
+      }
+    }
+
+    loadStatus();
+  </script>
+</body>
+</html>
